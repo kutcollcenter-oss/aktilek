@@ -1,0 +1,17 @@
+{
+  "name": "aktilek-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Сайт менеджера по недвижимости: подбор квартир и калькулятор рассрочки",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node lib/seed.js",
+    "import": "node scripts/import-from-kvartiry.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "multer": "^2.4.0",
+    "sharp": "^0.35.5"
+  }
+}

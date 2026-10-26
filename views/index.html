@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="{{htmlLang}}">
+<head>
+<!--HEAD-->
+</head>
+<body id="top">
+<!-- Заставка с логотипом: показывается один раз за сессию -->
+<script>try { if (sessionStorage.getItem('pl')) document.documentElement.classList.add('no-pl'); } catch (e) {}</script>
+<div class="preloader" id="preloader" aria-hidden="true">
+  <div class="pl-in">
+    <!--LOGO:pl-->
+    <div class="pl-line"><span></span></div>
+    <div class="pl-cap"><!--PL-CAP--></div>
+  </div>
+</div>
+<!--HEADER-->
+
+<main>
+  <!-- 1. Первый экран -->
+  <section class="hero"><div class="wrap hero-in">
+    <div class="hero-text">
+      <div class="pill" id="heroKicker"></div>
+      <h1 id="heroTitle"></h1>
+      <p class="hero-sub" id="heroSub"></p>
+      <div class="hero-btns">
+        <a href="#catalog" class="btn btn-primary btn-lg">{{pickApartment}} <span aria-hidden="true">→</span></a>
+        <a href="#" class="btn btn-wa btn-lg" id="heroWa" data-wa="hero" target="_blank" rel="noopener">{{writeWa}}</a>
+      </div>
+      <ul class="hero-points" id="heroPoints">
+      </ul>
+    </div>
+    <div class="hero-media">
+      <div class="hero-photo" id="heroPhoto"></div>
+      <div class="hero-badge">
+        <!--LOGO:badge-->
+        <div><b id="badgeName"></b><span id="badgeRole"></span></div>
+      </div>
+    </div>
+  </div></section>
+
+  <!--NEWS-->
+  <!-- 2. Скоро: новости менеджера. Блок есть, только если менеджер добавил новости в кабинете -->
+  <section class="section news-sec" id="news-sec"><div class="wrap">
+    <div class="kicker">{{soon}}</div>
+    <h2>{{newsH2Html}}</h2>
+    <div class="news" id="news"></div>
+  </div></section>
+  <!--/NEWS-->
+
+  <!-- 3. Подбор квартир -->
+  <section class="section catalog" id="catalog"><div class="wrap">
+    <div class="sec-head">
+      <div><div class="kicker">{{catalogKicker}}</div>
+      <h2>{{catalogH2Html}}</h2>
+      <p class="lead">{{catalogLead}}</p></div>
+    </div>
+
+    <div class="filter" id="filter">
+      <!-- Города: показываются, только если у менеджера квартиры в двух и более городах -->
+      <div class="seg seg-city" id="fCity" hidden></div>
+      <div class="seg" id="fType">
+        <button data-v="installment" class="on">{{typeInstallment}}</button>
+        <button data-v="commercial">{{typeCommercial}}</button>
+        <button data-v="cash">{{typeCash}}</button>
+        <button data-v="land">{{typeLand}}</button>
+      </div>
+      <div class="field" id="fDownWrap">
+        <div class="field-head"><label for="fDown">{{myDown}}</label><output id="oDown"></output></div>
+        <input type="range" id="fDown" class="range" data-hint="{{hintDown}}">
+      </div>
+
+      <div class="field" id="fMonthlyWrap">
+        <div class="field-head"><label for="fMonthly">{{monthlyUpTo}}</label><output id="oMonthly"></output></div>
+        <input type="range" id="fMonthly" class="range" data-hint="{{hintMonthly}}" data-hint-after="fDown">
+      </div>
+
+      <div class="field" id="fRoomsWrap">
+        <div class="field-head"><label>{{rooms}}</label></div>
+        <div class="chips" id="fRooms">
+          <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4+</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head"><label id="lArea">{{areaM2}}</label><output id="oArea"></output></div>
+        <div class="dual" id="fArea"><input type="range" aria-label="{{areaFrom}}"><input type="range" aria-label="{{areaTo}}"></div>
+      </div>
+
+      <button class="link-btn" id="fReset" type="button">{{resetFilter}}</button>
+    </div>
+
+    <div class="results-head">
+      <div id="count"></div>
+      <select id="sort" aria-label="{{sortLabel}}">
+        <option value="monthly">{{sortMonthly}}</option>
+        <option value="down">{{sortDown}}</option>
+        <option value="ppm" id="sortPpm">{{sortPpm}}</option>
+      </select>
+    </div>
+    <div class="cards" id="cards"></div>
+  </div></section>
+
+  <!-- 4. Как работает рассрочка -->
+  <section class="section steps-sec" id="installment"><div class="wrap">
+    <div class="kicker">{{instKicker}}</div>
+    <h2>{{instH2Html}}</h2>
+    <ol class="steps" id="steps"></ol>
+    <div class="docs" id="docsWrap"><h3>{{docsTitle}}</h3><ul id="docs"></ul></div>
+  </div></section>
+
+  <!-- Обо мне и офис — над отзывами: сначала клиент попадает к подбору квартир -->
+  <section class="section about" id="about"><div class="wrap">
+    <div class="about-grid">
+      <div>
+        <div class="kicker">{{aboutKicker}}</div>
+        <h2 id="aboutTitle"></h2>
+        <p class="about-text" id="aboutText"></p>
+      </div>
+      <a class="office" id="office" target="_blank" rel="noopener">
+        <!--LOGO:office-->
+        <div class="office-label">{{office}}</div>
+        <div class="office-addr" id="officeAddr"></div>
+        <div class="office-link" id="officeLinkText">{{open2gis}}</div>
+      </a>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div></section>
+
+  <!-- 5. Отзывы -->
+  <section class="section reviews-sec" id="reviews-sec"><div class="wrap">
+    <div class="kicker">{{reviewsKicker}}</div>
+    <h2>{{reviewsH2Html}}</h2>
+    <div class="reviews" id="reviews"></div>
+  </div></section>
+
+  <!-- 6. Вопросы и ответы -->
+  <section class="section faq-sec" id="faq-sec"><div class="wrap">
+    <div class="kicker">{{faqKicker}}</div>
+    <h2>{{faqH2Html}}</h2>
+    <div class="faq" id="faq"></div>
+  </div></section>
+
+  <!-- 7. Призыв к действию -->
+  <section class="section cta-sec"><div class="wrap">
+    <div class="cta">
+      <h2 id="ctaTitle"></h2>
+      <p id="ctaText"></p>
+      <a href="#" class="btn btn-wa btn-lg" id="ctaWa" data-wa="cta" target="_blank" rel="noopener">{{writeWa}}</a>
+    </div>
+  </div></section>
+</main>
+
+<!--FOOTER-->
+<!--SCRIPTS-->
+</body>
+</html>

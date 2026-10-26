@@ -1,0 +1,18 @@
+node_modules/
+data/backups/
+data/*.tmp
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# База и фото живут только на сервере — GitHub хранит только код.
+# Иначе обновление сайта (git pull) перезаписало бы живые данные старой копией.
+data/
+uploads/
+.claude/
+skills-lock.json
+
+# Личные фото — не в git (фото сайта живут в uploads/ на сервере)
+*.jpg
+*.jpeg
+!public/**/*.jpg
