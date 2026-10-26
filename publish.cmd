@@ -27,7 +27,7 @@ if errorlevel 1 (
   echo ERROR: push to GitHub failed. Check internet and GitHub login.
 ) else (
   echo.
-  echo DONE: https://github.com/kutcollcenter-oss/aktilek-site
+  echo DONE: https://github.com/kutcollcenter-oss/aktilek
 )
 
 :end

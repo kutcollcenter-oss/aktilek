@@ -42,7 +42,7 @@ bash /root/setup.sh ДОМЕН
 На середине установки скрипт покажет строку `ssh-ed25519 AAAA… aktilek-server` и остановится.
 Это ключ, по которому сервер **только читает** код из закрытого репозитория:
 
-1. GitHub → репозиторий `kutcollcenter-oss/aktilek-site` → **Settings** → **Deploy keys** → **Add deploy key**.
+1. GitHub → репозиторий `kutcollcenter-oss/aktilek` → **Settings** → **Deploy keys** → **Add deploy key**.
 2. Title: `server`, в Key — вставить строку целиком. Галочку **Allow write access не ставить**.
 3. **Add key**, вернуться в окно SSH и нажать Enter.
 

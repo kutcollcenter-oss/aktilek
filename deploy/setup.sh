@@ -7,7 +7,7 @@
 set -euo pipefail
 
 DOMAIN="${1:-}"
-REPO_PATH=kutcollcenter-oss/aktilek-site
+REPO_PATH=kutcollcenter-oss/aktilek
 APP=/var/www/aktilek
 KEY=/root/.ssh/aktilek_deploy
 
