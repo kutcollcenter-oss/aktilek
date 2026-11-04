@@ -1,0 +1,110 @@
+/* =====================================================================
+   Фирменный стиль YURTA INVEST. Подключается после apple.css (lib/pages.js).
+   Цвета из логотипа: медь (#C17F4E) и тёмная надпись; тёплый кремовый фон, как войлок юрты.
+   Украшение — тундук (купол юрты): крупно на первом экране и в финальном блоке, маленький — у подписей разделов.
+   Зелёный остаётся только у WhatsApp и «Хочу эту квартиру».
+   Чтобы вернуть стиль kvartiry.asia — убрать подключение yurta.css в head() (lib/pages.js).
+   ===================================================================== */
+:root {
+  --bg: #f7f2eb;
+  --soft: #efe6da;
+  --card: #fffdf9;
+  --ink: #2b2420;
+  --text: #2b2420;
+  --muted: #8a7a6c;
+  --line: #e4d8c8;
+  --copper: #c17f4e;
+  --copper-d: #a8622f;
+  --primary: #a8622f;
+  --primary-2: #8f5226;
+  --primary-soft: #f4e6d8;
+  --brand: #c17f4e;
+  --accent-text: #c17f4e;
+  --sh-1: 0 1px 2px rgba(80, 50, 20, .05), 0 4px 16px rgba(80, 50, 20, .07);
+  --sh-2: 0 2px 6px rgba(80, 50, 20, .06), 0 12px 32px rgba(80, 50, 20, .12);
+  --display: Jost, var(--sans);
+  --tunduk: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23C17F4E' stroke-width='1.3' stroke-linecap='round'%3E%3Ccircle cx='50' cy='50' r='32'/%3E%3Ccircle cx='50' cy='50' r='35.5'/%3E%3Cpath d='M36 22c9 18 9 38 0 56M50 18v64M64 22c-9 18-9 38 0 56M22 36c18 9 38 9 56 0M18 50h64M22 64c18-9 38-9 56 0'/%3E%3Cpath d='M86.0 50.0L99.0 50.0M84.8 59.3L94.4 61.9M81.2 68.0L92.4 74.5M75.5 75.5L82.5 82.5M68.0 81.2L74.5 92.4M59.3 84.8L61.9 94.4M50.0 86.0L50.0 99.0M40.7 84.8L38.1 94.4M32.0 81.2L25.5 92.4M24.5 75.5L17.5 82.5M18.8 68.0L7.6 74.5M15.2 59.3L5.6 61.9M14.0 50.0L1.0 50.0M15.2 40.7L5.6 38.1M18.8 32.0L7.6 25.5M24.5 24.5L17.5 17.5M32.0 18.8L25.5 7.6M40.7 15.2L38.1 5.6M50.0 14.0L50.0 1.0M59.3 15.2L61.9 5.6M68.0 18.8L74.5 7.6M75.5 24.5L82.5 17.5M81.2 32.0L92.4 25.5M84.8 40.7L94.4 38.1'/%3E%3C/svg%3E");
+  --tunduk-s: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23C17F4E' stroke-width='3' stroke-linecap='round'%3E%3Ccircle cx='50' cy='50' r='32'/%3E%3Ccircle cx='50' cy='50' r='35.5'/%3E%3Cpath d='M36 22c9 18 9 38 0 56M50 18v64M64 22c-9 18-9 38 0 56M22 36c18 9 38 9 56 0M18 50h64M22 64c18-9 38-9 56 0'/%3E%3Cpath d='M86.0 50.0L99.0 50.0M84.8 59.3L94.4 61.9M81.2 68.0L92.4 74.5M75.5 75.5L82.5 82.5M68.0 81.2L74.5 92.4M59.3 84.8L61.9 94.4M50.0 86.0L50.0 99.0M40.7 84.8L38.1 94.4M32.0 81.2L25.5 92.4M24.5 75.5L17.5 82.5M18.8 68.0L7.6 74.5M15.2 59.3L5.6 61.9M14.0 50.0L1.0 50.0M15.2 40.7L5.6 38.1M18.8 32.0L7.6 25.5M24.5 24.5L17.5 17.5M32.0 18.8L25.5 7.6M40.7 15.2L38.1 5.6M50.0 14.0L50.0 1.0M59.3 15.2L61.9 5.6M68.0 18.8L74.5 7.6M75.5 24.5L82.5 17.5M81.2 32.0L92.4 25.5M84.8 40.7L94.4 38.1'/%3E%3C/svg%3E");
+  --tunduk-l: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23E9C9A8' stroke-width='1.3' stroke-linecap='round'%3E%3Ccircle cx='50' cy='50' r='32'/%3E%3Ccircle cx='50' cy='50' r='35.5'/%3E%3Cpath d='M36 22c9 18 9 38 0 56M50 18v64M64 22c-9 18-9 38 0 56M22 36c18 9 38 9 56 0M18 50h64M22 64c18-9 38-9 56 0'/%3E%3Cpath d='M86.0 50.0L99.0 50.0M84.8 59.3L94.4 61.9M81.2 68.0L92.4 74.5M75.5 75.5L82.5 82.5M68.0 81.2L74.5 92.4M59.3 84.8L61.9 94.4M50.0 86.0L50.0 99.0M40.7 84.8L38.1 94.4M32.0 81.2L25.5 92.4M24.5 75.5L17.5 82.5M18.8 68.0L7.6 74.5M15.2 59.3L5.6 61.9M14.0 50.0L1.0 50.0M15.2 40.7L5.6 38.1M18.8 32.0L7.6 25.5M24.5 24.5L17.5 17.5M32.0 18.8L25.5 7.6M40.7 15.2L38.1 5.6M50.0 14.0L50.0 1.0M59.3 15.2L61.9 5.6M68.0 18.8L74.5 7.6M75.5 24.5L82.5 17.5M81.2 32.0L92.4 25.5M84.8 40.7L94.4 38.1'/%3E%3C/svg%3E");
+}
+body { background: var(--bg); }
+
+/* Заголовки — тонкий геометрический шрифт, как надпись YURTA на логотипе */
+h1, h2, h3 { font-family: var(--display); font-weight: 500; letter-spacing: -.01em; }
+.hero h1 { font-weight: 500; letter-spacing: -.015em; }
+h2 .hl, h1 .hl, .hl { color: var(--copper); }
+
+/* Название в шапке — как на логотипе: прописные, разрядка */
+.brand b { font-family: var(--display); font-weight: 500; text-transform: uppercase; letter-spacing: .16em; font-size: 15px; }
+.brand small { color: var(--muted); }
+
+/* Шапка и нижнее меню — тёплое «стекло» */
+.topbar { background: rgba(247, 242, 235, .72); border-bottom-color: rgba(193, 127, 78, .14); }
+.tabbar { background: rgba(255, 253, 249, .86); }
+@media (max-width: 1023px) { .tab.on { background: rgba(193, 127, 78, .12); color: var(--copper-d); } }
+.tab.on { color: var(--copper-d); }
+
+/* Фоны разделов: крем и тёплый белый */
+.hero { background: var(--bg); position: relative; overflow: hidden; }
+.catalog, .reviews-sec, .about, .team-sec { background: var(--bg); }
+.news-sec, .steps-sec, .faq-sec, .services-sec, .jobs-sec { background: var(--card); }
+.preloader { background: var(--bg); }
+
+/* Тундук на первом экране — крупный, едва заметный, за текстом */
+.hero::before { content: ""; position: absolute; width: min(620px, 120vw); aspect-ratio: 1; right: -18%; top: -22%;
+  background: var(--tunduk) center / contain no-repeat; opacity: .16; pointer-events: none; }
+@media (min-width: 900px) { .hero::before { right: auto; left: 38%; top: -30%; opacity: .13; } }
+.hero-in { position: relative; }
+
+/* Подписи разделов («Услуги», «Команда»…) — с маленьким тундуком */
+.kicker { display: inline-flex; align-items: center; gap: 8px; color: var(--copper-d); }
+.kicker::before { content: ""; display: inline-block; width: 18px; height: 18px; background: var(--tunduk-s) center / contain no-repeat; }
+.pill { color: var(--copper-d); background: var(--card); }
+
+/* Кнопки: основная — медная */
+.btn-primary, .chips button.on, .fx-cta-btn {
+  background: linear-gradient(180deg, #c98a5a 0%, var(--copper-d) 100%); color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 6px 18px rgba(168, 98, 47, .28) !important; }
+.fx-cta:hover .fx-cta-btn, .btn-primary:hover { background: linear-gradient(180deg, #b97948 0%, var(--primary-2) 100%); }
+.chips button { background: rgba(193, 127, 78, .10); color: var(--ink); }
+.chips button:hover { background: rgba(193, 127, 78, .18); }
+.seg, .lang-sw, #fType { background: rgba(193, 127, 78, .12); }
+.filter .field-head output, .office-link, .apt-complex, .mini span { color: var(--copper-d); }
+.link-btn, .news-more { color: var(--ink); }
+
+/* Ползунки — медная полоса */
+input.range { background: linear-gradient(to right, var(--copper) var(--p), #eadfd2 var(--p)) center / 100% 8px no-repeat; }
+.dual::before { background: linear-gradient(to right, #eadfd2 var(--lo), var(--copper) var(--lo), var(--copper) var(--hi), #eadfd2 var(--hi)); }
+
+/* Номера шагов, «Как купить», значки — медь */
+.howto li::before { color: var(--copper); }
+.howto li + li::after { background: var(--line); }
+.steps li::before, .avatar { background: var(--copper); color: #fff; }
+.steps li, .service, .job, .docs { background: var(--bg); }
+.hero-points li::before { color: var(--copper); }
+.faq summary::after { color: var(--copper-d); background: var(--primary-soft); }
+.stars { color: var(--copper); }
+.stat svg { color: var(--copper); }
+.hero-initials { background: linear-gradient(135deg, #d39a6c, #8f5226) !important; color: #fff; }
+.member-photo { background: var(--primary-soft); }
+.member-photo span { color: var(--copper-d); font-family: var(--display); }
+.tag-inst { background: rgba(168, 98, 47, .88); }
+.pay-line { background: rgba(193, 127, 78, .09); }
+.news-queue { border-color: var(--copper) !important; }
+
+/* Карточки — тёплый белый */
+.card, .news-card, .review, .office, .member, .sell, .faq details { background: var(--card); }
+.sell { position: relative; overflow: hidden; }
+.sell::after { content: ""; position: absolute; width: 220px; aspect-ratio: 1; right: -60px; bottom: -80px;
+  background: var(--tunduk) center / contain no-repeat; opacity: .14; pointer-events: none; }
+.sell > * { position: relative; z-index: 1; }
+
+/* Финальный блок — тёмный, как дерево купола, с тундуком */
+.cta { position: relative; overflow: hidden; background: #2b2420 !important; background-image: none !important; }
+.cta::after { content: ""; position: absolute; width: 420px; aspect-ratio: 1; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  background: var(--tunduk-l) center / contain no-repeat; opacity: .12; pointer-events: none; }
+.cta > * { position: relative; z-index: 1; }
+.cta p { color: rgba(255, 255, 255, .72); }
+
+/* Instagram под «О нас» — в тёплых тонах */
+.insta-link { background: var(--card); border-color: var(--line); }
