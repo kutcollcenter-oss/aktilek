@@ -21,10 +21,10 @@
     <div class="hero-text">
       <div class="pill" id="heroKicker"></div>
       <h1 id="heroTitle"></h1>
-      <p class="hero-sub" id="heroSub"></p>
-      <div class="hero-btns">
-        <a href="#catalog" class="btn btn-primary btn-lg">{{pickApartment}} <span aria-hidden="true">→</span></a>
-        <a href="#" class="btn btn-wa btn-lg" id="heroWa" data-wa="hero" target="_blank" rel="noopener">{{writeWa}}</a>
+
+      <!-- Как купить: три шага простыми словами -->
+      <div class="howto">
+        <ol><li>{{how1}}</li><li>{{how2}}</li><li>{{how3}}</li></ol>
       </div>
       <ul class="hero-points" id="heroPoints">
       </ul>
@@ -39,7 +39,7 @@
   </div></section>
 
   <!--NEWS-->
-  <!-- 2. Скоро: новости менеджера. Блок есть, только если менеджер добавил новости в кабинете -->
+  <!-- 2. Скоро: новости. Блок есть, только если в кабинете добавлены новости -->
   <section class="section news-sec" id="news-sec"><div class="wrap">
     <div class="kicker">{{soon}}</div>
     <h2>{{newsH2Html}}</h2>
@@ -52,9 +52,10 @@
     <div class="sec-head">
       <div><div class="kicker">{{catalogKicker}}</div>
       <h2>{{catalogH2Html}}</h2>
-      <p class="lead">{{catalogLead}}</p></div>
+      </div>
     </div>
 
+    <!-- Вопрос → быстрые суммы кнопками (их рисует app.js по ценам квартир), ниже — ползунок для точной суммы -->
     <div class="filter" id="filter">
       <!-- Города: показываются, только если у менеджера квартиры в двух и более городах -->
       <div class="seg seg-city" id="fCity" hidden></div>
@@ -65,12 +66,16 @@
         <button data-v="land">{{typeLand}}</button>
       </div>
       <div class="field" id="fDownWrap">
-        <div class="field-head"><label for="fDown">{{myDown}}</label><output id="oDown"></output></div>
+        <div class="field-head"><label for="fDown">{{askDown}}</label><output id="oDown"></output></div>
+        <div class="chips quick" id="qDown"></div>
+        <div class="exact-hint">{{exactHint}}</div>
         <input type="range" id="fDown" class="range" data-hint="{{hintDown}}">
       </div>
 
       <div class="field" id="fMonthlyWrap">
-        <div class="field-head"><label for="fMonthly">{{monthlyUpTo}}</label><output id="oMonthly"></output></div>
+        <div class="field-head"><label for="fMonthly">{{askMonthly}}</label><output id="oMonthly"></output></div>
+        <div class="chips quick" id="qMonthly"></div>
+        <div class="exact-hint">{{exactHint}}</div>
         <input type="range" id="fMonthly" class="range" data-hint="{{hintMonthly}}" data-hint-after="fDown">
       </div>
 
@@ -100,6 +105,16 @@
     <div class="cards" id="cards"></div>
   </div></section>
 
+  <!--SERVICES-->
+  <!-- Услуги агентства и призыв для владельцев «Продать или сдать». Блока нет, если ничего не заполнено -->
+  <section class="section services-sec" id="services"><div class="wrap">
+    <div class="kicker">{{servicesKicker}}</div>
+    <h2>{{servicesH2Html}}</h2>
+    <div class="services" id="servicesList"></div>
+    <div class="sell" id="sell"></div>
+  </div></section>
+  <!--/SERVICES-->
+
   <!-- 4. Как работает рассрочка -->
   <section class="section steps-sec" id="installment"><div class="wrap">
     <div class="kicker">{{instKicker}}</div>
@@ -108,13 +123,14 @@
     <div class="docs" id="docsWrap"><h3>{{docsTitle}}</h3><ul id="docs"></ul></div>
   </div></section>
 
-  <!-- Обо мне и офис — над отзывами: сначала клиент попадает к подбору квартир -->
+  <!-- О нас и офис — над отзывами: сначала клиент попадает к подбору квартир -->
   <section class="section about" id="about"><div class="wrap">
     <div class="about-grid">
       <div>
         <div class="kicker">{{aboutKicker}}</div>
         <h2 id="aboutTitle"></h2>
         <p class="about-text" id="aboutText"></p>
+        <!--INSTA-->
       </div>
       <a class="office" id="office" target="_blank" rel="noopener">
         <!--LOGO:office-->
@@ -125,6 +141,15 @@
     </div>
     <div class="stats" id="stats"></div>
   </div></section>
+
+  <!--TEAM-->
+  <!-- Команда: специалисты агентства, у каждого своя кнопка WhatsApp -->
+  <section class="section team-sec" id="team"><div class="wrap">
+    <div class="kicker">{{teamKicker}}</div>
+    <h2>{{teamH2Html}}</h2>
+    <div class="team" id="teamList"></div>
+  </div></section>
+  <!--/TEAM-->
 
   <!-- 5. Отзывы -->
   <section class="section reviews-sec" id="reviews-sec"><div class="wrap">
@@ -139,6 +164,15 @@
     <h2>{{faqH2Html}}</h2>
     <div class="faq" id="faq"></div>
   </div></section>
+
+  <!--JOBS-->
+  <!-- Вакансии агентства -->
+  <section class="section jobs-sec" id="jobs"><div class="wrap">
+    <div class="kicker">{{jobsKicker}}</div>
+    <h2>{{jobsH2Html}}</h2>
+    <div class="jobs" id="jobsList"></div>
+  </div></section>
+  <!--/JOBS-->
 
   <!-- 7. Призыв к действию -->
   <section class="section cta-sec"><div class="wrap">

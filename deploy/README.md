@@ -1,6 +1,6 @@
-# Установка на сервер Актилека (Ubuntu 24.04)
+# Установка на сервер YURTA INVEST (Ubuntu 24.04)
 
-Нужно: IP сервера и пароль root (приходят от хостинга после покупки VPS), купленный домен (например `aktilek.kg`).
+Нужно: IP сервера и пароль root (приходят от хостинга после покупки VPS), купленный домен (например `yurta.kg`).
 Команды «на компьютере» вводятся в PowerShell на компьютере, «на сервере» — в окне SSH.
 Ниже вместо `IP_СЕРВЕРА` и `ДОМЕН` подставьте свои значения.
 
@@ -39,7 +39,7 @@ bash /root/setup.sh ДОМЕН
 
 ## 3. Ключ доступа к коду (один раз)
 
-На середине установки скрипт покажет строку `ssh-ed25519 AAAA… aktilek-server` и остановится.
+На середине установки скрипт покажет строку `ssh-ed25519 AAAA… yurta-server` и остановится.
 Это ключ, по которому сервер **только читает** код из закрытого репозитория:
 
 1. GitHub → репозиторий `kutcollcenter-oss/aktilek` → **Settings** → **Deploy keys** → **Add deploy key**.
@@ -48,22 +48,18 @@ bash /root/setup.sh ДОМЕН
 
 Дальше скрипт ставит Node.js, nginx, защиту и код сайта (5–10 минут). Сайт пока не запускается.
 
-## 4. Перенести базу и фото
+## 4. Логин и пароль кабинета
 
-Сначала на компьютере подготовить свежие данные с kvartiry.asia — см. «Перенос с kvartiry.asia» в [README.md](../README.md).
-Затем на компьютере, в **новом** окне PowerShell (SSH не закрывать):
+В конце установки скрипт создаёт сайт с текстами YURTA INVEST и **один раз** показывает логин и пароль кабинета — запишите их.
+Сайт уже открывается по `http://IP_СЕРВЕРА`, а когда заработает домен — по `http://ДОМЕН`.
 
-```bash
-scp -r C:\Users\arlen\aktilek-site\data C:\Users\arlen\aktilek-site\uploads root@IP_СЕРВЕРА:/var/www/aktilek/
-```
-
-На сервере:
+Если сайт уже наполняли на компьютере, вместо новой базы можно перенести ту (на компьютере, в новом окне PowerShell):
 
 ```bash
-chown -R aktilek:aktilek /var/www/aktilek && systemctl start aktilek && systemctl status aktilek --no-pager
+scp -r C:\Users\arlen\aktilek-site\data C:\Users\arlen\aktilek-site\uploads root@IP_СЕРВЕРА:/var/www/yurta/
 ```
 
-Должно быть `active (running)`. Сайт открывается по `http://IP_СЕРВЕРА`, а когда заработает домен — по `http://ДОМЕН`.
+и затем на сервере: `chown -R yurta:yurta /var/www/yurta && systemctl restart yurta`.
 
 ## 5. HTTPS (замок в браузере)
 
@@ -77,11 +73,11 @@ certbot --nginx -d ДОМЕН -d www.ДОМЕН --redirect --agree-tos -m ВАШ
 
 ## 6. Вход в кабинет
 
-`https://ДОМЕН/admin` — логин и пароль те же, что были у Актилека на kvartiry.asia.
-Если он их не помнит — на сервере можно выдать новый пароль (он придумается сам и покажется один раз):
+`https://ДОМЕН/admin` — логин и пароль из шага 4. Сразу смените пароль: «Профиль» → «Пароль от кабинета».
+Если пароль забыт — на сервере можно выдать новый (он придумается сам и покажется один раз):
 
 ```bash
-cd /var/www/aktilek && systemctl stop aktilek && sudo -u aktilek node scripts/set-password.js && systemctl start aktilek
+cd /var/www/yurta && systemctl stop yurta && sudo -u yurta node scripts/set-password.js && systemctl start yurta
 ```
 
 ## Обновить сайт после изменений
@@ -89,7 +85,7 @@ cd /var/www/aktilek && systemctl stop aktilek && sudo -u aktilek node scripts/se
 Код отправляется на GitHub с компьютера (`publish.cmd`), затем на сервере:
 
 ```bash
-bash /var/www/aktilek/deploy/update.sh
+bash /var/www/yurta/deploy/update.sh
 ```
 
 База и фото на сервере при обновлении не затрагиваются.
@@ -97,9 +93,9 @@ bash /var/www/aktilek/deploy/update.sh
 ## Полезное
 
 ```bash
-systemctl status aktilek          # работает ли сайт
-journalctl -u aktilek -n 50       # последние сообщения сайта
-systemctl restart aktilek         # перезапустить
+systemctl status yurta          # работает ли сайт
+journalctl -u yurta -n 50       # последние сообщения сайта
+systemctl restart yurta         # перезапустить
 ```
 
-Резервные копии базы — `/var/www/aktilek/data/backups/` (каждый день, хранятся 30 дней).
+Резервные копии базы — `/var/www/yurta/data/backups/` (каждый день, хранятся 30 дней).

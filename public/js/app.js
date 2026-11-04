@@ -16,15 +16,12 @@
   $('heroTitle').innerHTML = words.map((w, i) =>
     `<span class="w${i >= cut ? ' hl' : ''}"><span style="--i:${i}">${esc(w)}</span></span>`).join(' ');
   const role = String(S.role || '');
-  $('heroSub').textContent = L('heroSub', { who: `${S.name}${role ? ` — ${role[0].toLowerCase() + role.slice(1)}` : ''}` });
   $('badgeName').textContent = S.name;
   $('badgeRole').textContent = S.role || '';
   $('heroPhoto').innerHTML = S.photo
     ? `<img src="${esc(S.photo)}" alt="${esc(S.name)}" fetchpriority="high">`
     : `<div class="hero-initials">${esc(S.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2))}</div>`;
   const waGeneral = wa(L('waGeneral'));
-  $('heroWa').href = waGeneral;
-  $('heroWa').insertAdjacentHTML('afterbegin', D.waIcon);
   $('ctaWa').href = waGeneral;
   $('ctaWa').insertAdjacentHTML('afterbegin', D.waIcon);
   $('ctaTitle').textContent = S.ctaTitle;
@@ -105,7 +102,9 @@
     vals = vals.filter(v => v != null);
     if (!vals.length) return { min: 0, max: 0, step: 1 };
     const step = nice((Math.max(...vals) - Math.min(...vals)) / steps || 1);
-    return { min: Math.floor(Math.min(...vals) / step) * step, max: Math.ceil(Math.max(...vals) / step) * step, step };
+    // Шаг 0.1 или 0.2: компьютер считает дроби неточно (20.700000000000003) — округляем до знаков шага
+    const r = v => +v.toFixed(Math.max(0, -Math.floor(Math.log10(step))));
+    return { min: r(Math.floor(Math.min(...vals) / step) * step), max: r(Math.ceil(Math.max(...vals) / step) * step), step };
   };
   // Границы с заданным шагом: ползунок «Мой первоначальный взнос» двигается ровно по 100 000
   const fixedBounds = (vals, step) => {
@@ -122,7 +121,7 @@
 
   const st = { type: 'installment' };
   let B;
-  // Город: null — все города. Всё остальное в фильтре (ползунки, комнаты) считается по квартирам выбранного города.
+  // Город: null — город не выбран (на сайте квартиры одного города). Всё остальное в фильтре (ползунки, комнаты) считается по квартирам выбранного города.
   st.city = null;
   const ofType = () => APTS.filter(a => a.type === st.type && (!st.city || a.city === st.city));
 
@@ -197,6 +196,54 @@
     const land = st.type === 'land';
     $('lArea').textContent = L(land ? 'areaSot' : 'areaM2');
     $('sortPpm').textContent = L(land ? 'sortPpmLand' : 'sortPpm');
+    drawQuick();
+  }
+
+  // ---------- Быстрые суммы: «до 500 тыс», «до 1 млн», … ----------
+  // Кнопки строятся по квартирам выбранной категории: примерно четверть, половина и большинство квартир подходят.
+  // Нажатие ставит сумму так же, как ползунок; ползунок остаётся ниже для точной суммы.
+  const shortMoney = n => (n >= 1e6
+    ? `${(n / 1e6).toLocaleString('ru-RU', { maximumFractionDigits: 1 })} ${L('million')}`
+    : `${Math.round(n / 1e3)} ${L('thousand')}`);
+  // Округление вверх до ровной суммы: до 100 тыс — по 10 тыс, до 1 млн — по 50 тыс, дальше — по 250 тыс
+  const niceUp = x => {
+    const step = x < 1e5 ? 1e4 : x < 1e6 ? 5e4 : 2.5e5;
+    return Math.ceil(x / step) * step;
+  };
+  function quickValues(vals, qs) {
+    vals = vals.filter(v => v > 0).sort((a, b) => a - b);
+    if (vals.length < 2) return [];
+    return [...new Set(qs.map(q => niceUp(vals[Math.floor(q * (vals.length - 1))])))];
+  }
+  const QUICK = { down: 'qDown', monthly: 'qMonthly' };
+  function drawQuick() {
+    const inst = ofType().filter(a => a.installment);
+    // Платёж в месяц — суммы пониже (люди чаще ищут недорогой платёж): примерно 15%, 40% и 70% квартир подходят
+    const vals = { down: quickValues(inst.map(a => a.down), [0.25, 0.5, 0.8]), monthly: quickValues(inst.map(a => a.monthly), [0.15, 0.4, 0.7]) };
+    for (const key in QUICK) {
+      const box = $(QUICK[key]);
+      box.innerHTML = vals[key].map(v => `<button type="button" data-v="${v}">${esc(L('quickUpTo', { x: shortMoney(v) }))}</button>`).join('')
+        + `<button type="button" data-v="">${esc(L('anySum'))}</button>`;
+      box.hidden = !vals[key].length;
+      box.nextElementSibling.hidden = !vals[key].length; // «Или выберите точную сумму»
+    }
+    markQuick();
+  }
+  function markQuick() {
+    for (const key in QUICK) {
+      $(QUICK[key]).querySelectorAll('button').forEach(b =>
+        b.classList.toggle('on', b.dataset.v === '' ? st[key] == null : +b.dataset.v === st[key]));
+    }
+  }
+  for (const key in QUICK) {
+    $(QUICK[key]).addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      const v = b.dataset.v === '' ? null : +b.dataset.v;
+      st[key] = v;
+      const range = key === 'down' ? fDown : fMonthly;
+      range.value = v == null ? B[key].max : v;
+      update();
+    });
   }
 
   fDown.addEventListener('input', () => { st.down = +fDown.value >= B.down.max ? null : +fDown.value; update(); });
@@ -282,12 +329,10 @@
     const main = a.installment
       ? `<div class="card-price"><b>${money(a.o.monthly, c)}</b><span>${L('perMonth')}</span></div>`
       : `<div class="card-price"><b>${money(a.price, c)}</b><span>${L(cashLike(a.type) ? 'cashWord' : 'fullPay')}</span></div>`;
+    // Главное о рассрочке — одной фразой: «Внесёте 800 000 сом → дальше 81 000 сом в месяц, 24 мес.»
     const pay = a.installment
-      ? `<div class="pay-row">
-          <div><span>${L('down')}</span><b>${money(a.o.down, c)}</b></div>
-          <div><span>${L('term')}</span><b>${L('months', { n: a.months })}</b></div>
-          <div><span>${L('price')}</span><b>${money(a.price, c)}</b></div>
-        </div>`
+      ? `<p class="pay-line">${L('payLineHtml', { down: money(a.o.down, c), monthly: money(a.o.monthly, c), n: a.months })}</p>
+        <div class="price-line">${esc(L('priceLine', { x: money(a.price, c) }))}</div>`
       : '';
     // Строки взноса и платежа в сообщении — под выбранный в фильтре взнос
     const text = a.installment ? replacePay(a.waText, money(a.o.down, c), L('waMonthlyFor', { x: money(a.o.monthly, c), n: a.months })).replace(a.url, url) : a.waText;
@@ -300,13 +345,13 @@
           ${a.address ? `<div class="card-addr">${I.pin}${esc(a.address)}</div>` : ''}
           ${pay}
           <div class="feats">
-            ${a.type === 'commercial' || a.type === 'land' ? '' : `<span>${I.bed}${a.roomsLabel}</span>`}<span>${I.area}${a.area} ${a.unit}</span>
+            ${''/* комнаты и площадь уже есть в названии карточки — здесь не повторяем */}
             ${a.floorFrom ? `<span>${I.floor}${L('fromFloor', { f: a.floorFrom })}</span>` : ''}
             <span class="feats-ppm">${money(a.pricePerM2, c)}/${L(a.type === 'land' ? 'perSot' : 'perM2')}</span>
           </div>
         </div>
       </a>
-      <div class="card-actions"><a class="btn btn-wa" href="${esc(wa(text))}" data-wa="card" data-id="${a.id}" target="_blank" rel="noopener">${D.waIcon}${L('writeWa')}</a></div>
+      <div class="card-actions"><a class="btn btn-wa btn-want" href="${esc(wa(text))}" data-wa="card" data-id="${a.id}" target="_blank" rel="noopener">${D.waIcon}${L({ commercial: 'wantCommercial', land: 'wantLand' }[a.type] || 'wantApartment')}</a></div>
     </article>`;
   }
 
@@ -323,9 +368,11 @@
     const u = L(st.type === 'land' ? 'perSot' : 'perM2');
     $('oDown').textContent = st.down == null ? L('any') : money(st.down, c);
     $('oMonthly').textContent = st.monthly == null ? L('any') : L('upTo', { x: money(st.monthly, c) });
-    $('oArea').textContent = st.area[0] === st.area[1] ? `${st.area[0]} ${u}` : `${st.area[0]} – ${st.area[1]} ${u}`;
+    const n = v => +(+v).toFixed(1); // площадь — не больше одного знака после точки
+    $('oArea').textContent = st.area[0] === st.area[1] ? `${n(st.area[0])} ${u}` : `${n(st.area[0])} – ${n(st.area[1])} ${u}`;
     [fDown, fMonthly].forEach(paintRange);
     paintDual($('fArea'), st.area, B.area);
+    markQuick();
 
     const list = ofType().filter(match)
       .map(a => ({ ...a, o: offer(a) }))
@@ -352,10 +399,12 @@
     }
   }
 
-  // Города: кнопки «Все города» и каждый город, где есть квартиры. Один город — переключателя нет.
+  // Города: кнопка на каждый город, где есть квартиры, сразу выбран первый (Бишкек). «Все города» нет.
+  // Один город — переключателя нет.
   const cities = ['Бишкек', 'Ош'].filter(c => APTS.some(a => a.city === c));
   if (cities.length > 1) {
-    $('fCity').innerHTML = ['', ...cities].map(c => `<button type="button" data-v="${esc(c)}" class="${c ? '' : 'on'}">${c ? esc(c) : L('allCities')}</button>`).join('');
+    st.city = cities[0];
+    $('fCity').innerHTML = cities.map((c, i) => `<button type="button" data-v="${esc(c)}" class="${i ? '' : 'on'}">${esc(c)}</button>`).join('');
     $('fCity').hidden = false;
     $('fCity').addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
@@ -371,8 +420,13 @@
   // Вкладки только тех категорий, что есть на сайте; если категория одна — вкладок нет
   const has = t => APTS.some(a => a.type === t);
   $('fType').querySelectorAll('button').forEach(b => { b.hidden = !has(b.dataset.v); });
+  // На телефоне вкладки стоят по две в ряд: если их нечётное число, последняя — на всю ширину
+  const shownTabs = [...$('fType').querySelectorAll('button')].filter(b => !b.hidden);
+  if (shownTabs.length % 2) shownTabs[shownTabs.length - 1].classList.add('wide');
   if (TYPE_ORDER.filter(has).length < 2) $('fType').hidden = true;
   if (!has(st.type)) st.type = TYPE_ORDER.find(has) || 'installment';
+  // В выбранном сразу городе нет квартир этой категории — берём ту, что в нём есть
+  if (!ofType().length) st.type = TYPE_ORDER.find(t => APTS.some(a => a.type === t && (!st.city || a.city === st.city))) || st.type;
   reset();
   syncInputs();
   update();

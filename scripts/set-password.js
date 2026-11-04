@@ -1,6 +1,6 @@
 // Новый пароль для входа в кабинет, если старый забыт. Пароль придумывается сам и печатается один раз.
 // Сайт на время смены нужно остановить (иначе он перезапишет базу старой копией из памяти):
-//   systemctl stop aktilek && sudo -u aktilek node scripts/set-password.js && systemctl start aktilek
+//   systemctl stop yurta && sudo -u yurta node scripts/set-password.js && systemctl start yurta
 // Сменить и логин: node scripts/set-password.js --login newlogin
 const fs = require('fs');
 const path = require('path');

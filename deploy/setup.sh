@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # Первая установка сайта на чистый сервер Ubuntu 24.04. Запускать от root, указав домен:
-#   bash /root/setup.sh aktilek.kg
-# (файл кладётся на сервер с компьютера командой scp — см. deploy/README.md, шаг 2; репозиторий закрытый,
-#  поэтому скачать его по ссылке нельзя). Без домена сайт будет открываться только по IP сервера.
-# Сайт после этой команды ещё не запускается: сначала переносим базу и фото (deploy/README.md, шаг 4).
+#   bash /root/setup.sh yurta.kg
+# (файл кладётся на сервер с компьютера командой scp — см. deploy/README.md, шаг 2).
+# Без домена сайт будет открываться только по IP сервера.
+# Если базы на сервере ещё нет, создаётся новый сайт с текстами YURTA INVEST; логин и пароль кабинета печатаются в конце.
 set -euo pipefail
 
 DOMAIN="${1:-}"
 REPO_PATH=kutcollcenter-oss/aktilek
-APP=/var/www/aktilek
-KEY=/root/.ssh/aktilek_deploy
+APP=/var/www/yurta
+KEY=/root/.ssh/yurta_deploy
 
 echo "== 1/7 Обновление системы и программы =="
 export DEBIAN_FRONTEND=noninteractive
@@ -26,13 +26,13 @@ node -v
 
 echo "== 3/7 Ключ сервера для чтения кода с GitHub (только чтение, только этот репозиторий) =="
 mkdir -p /root/.ssh && chmod 700 /root/.ssh
-[ -f "$KEY" ] || ssh-keygen -t ed25519 -N "" -C "aktilek-server" -f "$KEY" >/dev/null
-if ! grep -q "Host github-aktilek" /root/.ssh/config 2>/dev/null; then
-  printf 'Host github-aktilek\n  HostName github.com\n  User git\n  IdentityFile %s\n  IdentitiesOnly yes\n' "$KEY" >> /root/.ssh/config
+[ -f "$KEY" ] || ssh-keygen -t ed25519 -N "" -C "yurta-server" -f "$KEY" >/dev/null
+if ! grep -q "Host github-yurta" /root/.ssh/config 2>/dev/null; then
+  printf 'Host github-yurta\n  HostName github.com\n  User git\n  IdentityFile %s\n  IdentitiesOnly yes\n' "$KEY" >> /root/.ssh/config
   chmod 600 /root/.ssh/config
 fi
 ssh-keyscan -t ed25519 github.com >> /root/.ssh/known_hosts 2>/dev/null
-REPO="git@github-aktilek:${REPO_PATH}.git"
+REPO="git@github-yurta:${REPO_PATH}.git"
 until git ls-remote "$REPO" >/dev/null 2>&1; do
   echo
   echo "Добавьте этот ключ на GitHub: репозиторий ${REPO_PATH} → Settings → Deploy keys → Add deploy key"
@@ -45,26 +45,26 @@ done
 echo "Доступ к коду есть."
 
 echo "== 4/7 Пользователь и код сайта =="
-id -u aktilek >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin aktilek
+id -u yurta >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin yurta
 git config --global --add safe.directory "$APP"
 if [ -d "$APP/.git" ]; then git -C "$APP" pull --ff-only; else git clone "$REPO" "$APP"; fi
 mkdir -p "$APP/data" "$APP/uploads"
 cd "$APP"
 npm ci --omit=dev
-chown -R aktilek:aktilek "$APP"
+chown -R yurta:yurta "$APP"
 
 echo "== 5/7 Автозапуск сайта =="
-cp "$APP/deploy/aktilek.service" /etc/systemd/system/aktilek.service
+cp "$APP/deploy/yurta.service" /etc/systemd/system/yurta.service
 systemctl daemon-reload
-systemctl enable aktilek
+systemctl enable yurta
 
 echo "== 6/7 nginx =="
 if [ -n "$DOMAIN" ]; then
-  sed "s/DOMAIN/${DOMAIN}/g" "$APP/deploy/nginx.conf" > /etc/nginx/sites-available/aktilek
+  sed "s/DOMAIN/${DOMAIN}/g" "$APP/deploy/nginx.conf" > /etc/nginx/sites-available/yurta
 else
-  sed "s/server_name DOMAIN www.DOMAIN;/server_name _;/" "$APP/deploy/nginx.conf" > /etc/nginx/sites-available/aktilek
+  sed "s/server_name DOMAIN www.DOMAIN;/server_name _;/" "$APP/deploy/nginx.conf" > /etc/nginx/sites-available/yurta
 fi
-ln -sf /etc/nginx/sites-available/aktilek /etc/nginx/sites-enabled/aktilek
+ln -sf /etc/nginx/sites-available/yurta /etc/nginx/sites-enabled/yurta
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
 systemctl reload nginx
@@ -75,10 +75,10 @@ ufw allow 'Nginx Full'
 ufw --force enable
 
 echo
-if [ -f "$APP/data/db.json" ]; then
-  systemctl restart aktilek
-  echo "Готово: сайт запущен."
-else
-  echo "Готово. Сайт ещё НЕ запущен: перенесите базу и фото (deploy/README.md, шаг 4), затем:"
-  echo "  chown -R aktilek:aktilek $APP && systemctl start aktilek"
+if [ ! -f "$APP/data/db.json" ]; then
+  echo "== Новая база сайта. Запишите логин и пароль кабинета — они показываются один раз: =="
+  sudo -u yurta node "$APP/lib/seed.js"
 fi
+systemctl restart yurta
+sleep 2
+systemctl is-active --quiet yurta && echo "Готово: сайт запущен." || { echo "Сайт не запустился:"; journalctl -u yurta -n 30 --no-pager; exit 1; }

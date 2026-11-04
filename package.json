@@ -1,13 +1,12 @@
 {
-  "name": "aktilek-site",
+  "name": "yurta-site",
   "version": "1.0.0",
   "private": true,
-  "description": "Сайт менеджера по недвижимости: подбор квартир и калькулятор рассрочки",
+  "description": "Сайт агентства недвижимости YURTA INVEST: подбор квартир и калькулятор рассрочки",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "seed": "node lib/seed.js",
-    "import": "node scripts/import-from-kvartiry.js"
+    "seed": "node lib/seed.js"
   },
   "dependencies": {
     "express": "^4.21.2",

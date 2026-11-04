@@ -1,11 +1,11 @@
 [Unit]
-Description=Сайт Актилека — квартиры в рассрочку
+Description=Сайт YURTA INVEST — агентство недвижимости
 After=network.target
 
 [Service]
 Type=simple
-User=aktilek
-WorkingDirectory=/var/www/aktilek
+User=yurta
+WorkingDirectory=/var/www/yurta
 Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=HOST=127.0.0.1

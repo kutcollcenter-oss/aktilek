@@ -1,5 +1,5 @@
-// Личный сайт одного менеджера по недвижимости: каталог квартир с подбором по взносу и платежу,
-// калькулятор рассрочки, заявки в WhatsApp, русская и кыргызская версии. Кабинет — /admin (один вход).
+// Сайт агентства недвижимости: каталог квартир с подбором по взносу и платежу, калькулятор рассрочки,
+// услуги, команда, вакансии, заявки в WhatsApp, русская и кыргызская версии. Кабинет — /admin (один вход).
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -16,6 +16,7 @@ const { resolveMap } = require('./lib/maps');
 const pages = require('./lib/pages');
 const auth = require('./lib/auth');
 const analytics = require('./lib/analytics');
+const logoBg = require('./lib/logo-bg');
 
 const PORT = process.env.PORT || 3010;
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
@@ -114,8 +115,9 @@ async function saveLogo(buffer) {
 
 function removePhotoFiles(name) {
   const used = D().apartments.some(a => (a.photos || []).includes(name))
-    || (S().news || []).some(n => n.photo === name);
-  if (used) return; // фото ещё используется в дубликате или в новости
+    || (S().news || []).some(n => n.photo === name)
+    || (S().team || []).some(m => m.photo === name);
+  if (used) return; // фото ещё используется в дубликате, новости или в карточке специалиста
   for (const f of [`${name}.webp`, `${name}-t.webp`, `${name}-og.jpg`]) {
     fs.unlink(path.join(UPLOAD_DIR, f), () => {});
   }
@@ -458,6 +460,7 @@ app.delete('/api/admin/apartments/:id', requireAuth, (req, res) => {
 // ---------- Кабинет: профиль (тексты сайта) ----------
 const SETTINGS_KEYS = ['name', 'role', 'company', 'tagline', 'about', 'stats', 'whatsapp', 'instagram', 'officeAddress', 'officeLink',
   'currencyInstallment', 'currencyCash', 'heroKicker', 'heroPoints', 'ctaTitle', 'ctaText', 'steps', 'documents', 'reviews', 'faq', 'privacy',
+  'services', 'sellTitle', 'sellText', 'vacancies',
   ...KY_KEYS.map(k => k + 'Ky')]; // кыргызские варианты текстов профиля
 // Поля старого раздела «Уведомления и внешние счётчики» (там мог оказаться пароль, подставленный браузером) — стираются при запуске
 const DROPPED_KEYS = ['gaId', 'ymId', 'pixelId', 'tgToken', 'tgChat'];
@@ -480,6 +483,21 @@ function cleanNews(list) {
   }).filter(n => n.title || n.text);
 }
 
+// Команда агентства: до 12 специалистов — имя, должность, свой WhatsApp и фото (из /api/admin/photos)
+const TEAM_MAX = 12;
+function cleanTeam(list) {
+  return list.slice(0, TEAM_MAX).map(m => {
+    const photo = cleanPhotos([m && m.photo]) || [];
+    return {
+      id: m && /^[a-z0-9]{4,24}$/i.test(String(m.id || '')) ? String(m.id) : db.newId(),
+      name: String((m && m.name) || '').trim().slice(0, 80),
+      role: String((m && m.role) || '').trim().slice(0, 80),
+      whatsapp: String((m && m.whatsapp) || '').replace(/[^\d+]/g, '').slice(0, 20),
+      photo: photo[0] || '',
+    };
+  }).filter(m => m.name);
+}
+
 app.put('/api/admin/settings', requireAuth, (req, res) => {
   const s = S();
   for (const k of SETTINGS_KEYS) {
@@ -491,6 +509,12 @@ app.put('/api/admin/settings', requireAuth, (req, res) => {
     s.news = cleanNews(req.body.news);
     db.save();
     before.filter(p => !s.news.some(n => n.photo === p)).forEach(removePhotoFiles);
+  }
+  if (Array.isArray(req.body.team)) {
+    const before = (s.team || []).map(m => m.photo).filter(Boolean);
+    s.team = cleanTeam(req.body.team);
+    db.save();
+    before.filter(p => !s.team.some(m => m.photo === p)).forEach(removePhotoFiles);
   }
   db.save();
   res.json(s);
@@ -512,6 +536,7 @@ app.post('/api/admin/settings/logo', requireAuth, upload.single('logo'), async (
   if (!req.file) return res.status(400).json({ error: 'Нет файла' });
   try {
     S().logo = await saveLogo(req.file.buffer);
+    logoBg.warm(S().logo); // цвет фона для плашки вокруг логотипа
     db.save();
     res.json(S());
   } catch (e) {
@@ -590,6 +615,7 @@ function backupBefore(name) {
   let dropped = false;
   for (const k of DROPPED_KEYS) if (k in S()) { delete S()[k]; dropped = true; }
   if (dropped) db.save();
+  if (S().logo) logoBg.warm(S().logo);
   analytics.prune();
   db.scheduleBackups();
   // На сервере HOST=127.0.0.1: сайт доступен только через nginx (HTTPS), напрямую порт закрыт

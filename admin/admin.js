@@ -1,4 +1,4 @@
-// Кабинет сайта: квартиры, профиль, подробная аналитика. Один вход — для владельца сайта.
+// Кабинет сайта агентства: квартиры, профиль (тексты, услуги, команда, вакансии), подробная аналитика. Один вход.
 // Рассчитан на телефон. Статусов у квартир нет: квартира либо на сайте, либо удалена.
 (function () {
   const app = document.getElementById('app');
@@ -101,7 +101,7 @@
         ${SKYLINE}
         <div class="auth-cover-in">
           <div class="auth-kicker">Кабинет сайта</div>
-          <h1>Ваш сайт продаёт квартиры, <em>пока вы на показах</em></h1>
+          <h1>Сайт продаёт квартиры, <em>пока вы на показах</em></h1>
           <ul class="auth-points">
             <li><b>Клиент подбирает сам</b> по взносу и платежу в месяц — без звонков «а что есть?»</li>
             <li><b>Заявки сразу в WhatsApp</b> — с квартирой, взносом и платежом в сообщении</li>
@@ -505,6 +505,61 @@
     return () => list.filter(n => String(n.title || '').trim() || String(n.text || '').trim());
   }
 
+  // Команда: карточки специалистов — фото, имя, должность, свой WhatsApp
+  const TEAM_MAX = 12;
+  function teamEditor(initial) {
+    const list = (Array.isArray(initial) ? initial : []).map(m => ({ ...m }));
+    const box = document.getElementById('teamList');
+    const add = document.getElementById('teamAdd');
+    const draw = () => {
+      box.innerHTML = list.length ? list.map((m, i) => `<div class="rev news-ed team-ed" data-i="${i}">
+        <div class="row" style="margin-bottom:10px">
+          ${m.photo ? `<img class="news-ed-img team-ed-img" src="/uploads/${esc(m.photo)}-t.webp" alt="">` : ''}
+          <label class="upload" style="flex:1"><input type="file" accept="image/*" data-up>+ ${m.photo ? 'Заменить фото' : 'Добавить фото'}</label>
+          ${m.photo ? '<button type="button" class="btn team-nophoto">Убрать фото</button>' : ''}
+        </div>
+        <label class="f"><span>Имя</span><input data-k="name" maxlength="80" value="${esc(m.name)}" placeholder="Например: Айгерим Садыкова"></label>
+        <label class="f"><span>Должность</span><input data-k="role" maxlength="80" value="${esc(m.role)}" placeholder="Например: Специалист по новостройкам"></label>
+        <label class="f"><span>WhatsApp специалиста</span><input data-k="whatsapp" type="tel" maxlength="20" value="${esc(m.whatsapp)}" placeholder="Пусто — заявки придут на номер агентства"></label>
+        <div class="row" style="gap:8px">
+          <button type="button" class="btn team-up"${i ? '' : ' disabled'}>↑ Выше</button>
+          <button type="button" class="btn btn-danger rev-del team-del">Удалить</button>
+        </div>
+      </div>`).join('') : '<p class="hint">Специалистов пока нет. Без них блока «Команда» на сайте не будет.</p>';
+      add.hidden = list.length >= TEAM_MAX;
+    };
+    box.addEventListener('input', e => {
+      const el = e.target.closest('[data-k]'); if (!el) return;
+      list[+el.closest('.team-ed').dataset.i][el.dataset.k] = el.value;
+    });
+    box.addEventListener('change', async e => {
+      const inp = e.target.closest('[data-up]'); if (!inp || !inp.files[0]) return;
+      const m = list[+inp.closest('.team-ed').dataset.i];
+      const fd = new FormData(); fd.append('photos', inp.files[0]);
+      toast('Загрузка фото…');
+      try {
+        const r = await api('POST', '/api/admin/photos', fd);
+        m.photo = r.photos[0]; draw(); toast('Фото загружено — не забудьте сохранить');
+      } catch (err) { toast(err.message); }
+    });
+    box.addEventListener('click', async e => {
+      const ed = e.target.closest('.team-ed'); if (!ed) return;
+      const i = +ed.dataset.i, m = list[i];
+      if (e.target.closest('.team-nophoto')) { m.photo = ''; draw(); return; }
+      if (e.target.closest('.team-up') && i > 0) { [list[i - 1], list[i]] = [list[i], list[i - 1]]; draw(); return; }
+      if (!e.target.closest('.team-del')) return;
+      if (m.name && !(await confirmBox('Удалить специалиста?', 'Карточка исчезнет с сайта после сохранения.', 'Удалить', true))) return;
+      list.splice(i, 1); draw();
+    });
+    add.onclick = () => {
+      list.push({ name: '', role: '', whatsapp: '', photo: '' });
+      draw();
+      const inputs = box.querySelectorAll('.team-ed input[data-k="name"]'); if (inputs.length) inputs[inputs.length - 1].focus();
+    };
+    draw();
+    return () => list.filter(m => String(m.name || '').trim());
+  }
+
   // ---------- Профиль (настройки сайта) ----------
   async function renderSettings() {
     settings = await api('GET', '/api/admin/settings');
@@ -513,21 +568,22 @@
     const t = (k, label, hint = '') => `<label class="f"><span>${label}</span><textarea name="${k}" rows="6">${esc(s[k])}</textarea>${hint ? `<div class="hint">${hint}</div>` : ''}</label>`;
     app.innerHTML = `${nav('settings')}<div class="wrap"><h1>Профиль</h1>
       <form id="sf">
-        <div class="card"><h2 style="margin-top:0">Менеджер</h2>
+        <div class="card"><h2 style="margin-top:0">Агентство</h2>
           <div class="row" style="margin-bottom:12px">
             ${s.photo ? `<img src="${esc(s.photo)}" style="width:72px;height:90px;object-fit:cover;border-radius:10px">` : ''}
-            <label class="upload" style="flex:1"><input type="file" id="pf" accept="image/*">+ ${s.photo ? 'Заменить фото' : 'Загрузить своё фото'}</label>
+            <label class="upload" style="flex:1"><input type="file" id="pf" accept="image/*">+ ${s.photo ? 'Заменить фото первого экрана' : 'Загрузить фото первого экрана'}</label>
           </div>
-          ${f('name', 'Имя')}
-          ${f('role', 'Кем работаете', 'text', 'Например: Руководитель отдела продаж')}
+          <div class="hint" style="margin:-4px 0 12px">Фото первого экрана — команда, офис или руководитель.</div>
+          ${f('name', 'Название агентства')}
+          ${f('role', 'Подпись под названием', 'text', 'Например: Агентство недвижимости')}
           ${f('heroKicker', 'Надпись над заголовком')}
           ${f('tagline', 'Заголовок первого экрана')}
           ${t('heroPoints', 'Пункты под кнопками', 'Каждый пункт с новой строки, лучше 2–3 коротких')}
-          ${t('about', 'Текст «Обо мне»')}
-          ${t('stats', 'Цифры доверия', 'Каждая строка: значение | подпись. Например: 3 года | в недвижимости')}
+          ${t('about', 'Текст «О нас»')}
+          ${t('stats', 'Цифры доверия', 'Каждая строка: значение | подпись. Например: 500+ | довольных клиентов')}
         </div>
         <div class="card"><h2 style="margin-top:0">Компания и логотип</h2>
-          ${f('company', 'Компания', 'text', 'Например: строительная компания, в которой вы работаете. Можно оставить пустым.')}
+          ${f('company', 'Полное название компании', 'text', 'Например: ОсОО «…». Показывается в подписи логотипа. Можно оставить пустым.')}
           <div class="row" style="margin-bottom:6px">
             ${s.logo ? `<div class="logo-prev"><img src="${esc(s.logo)}" alt=""></div>` : ''}
             <label class="upload" style="flex:1"><input type="file" id="lf2" accept="image/*">+ ${s.logo ? 'Заменить логотип' : 'Загрузить логотип'}</label>
@@ -536,8 +592,8 @@
           <div class="hint">Лучше PNG с прозрачным фоном. Без логотипа на сайте показывается только имя.</div>
         </div>
         <div class="card"><h2 style="margin-top:0">Контакты</h2>
-          ${f('whatsapp', 'Номер WhatsApp', 'tel', 'С кодом страны, например +996 500 123 456. Сюда приходят все заявки с сайта.')}
-          ${f('instagram', 'Instagram', 'text', 'Ник, например @aktilek.realty')}
+          ${f('whatsapp', 'Номер WhatsApp', 'tel', 'С кодом страны, например +996 555 666 533. Сюда приходят все заявки с сайта.')}
+          ${f('instagram', 'Instagram', 'text', 'Ник, например @yurta_invest')}
           ${f('officeAddress', 'Адрес офиса')}
           ${f('officeLink', 'Ссылка на офис в 2ГИС')}
         </div>
@@ -546,9 +602,10 @@
         </div>
         <div class="card"><h2 style="margin-top:0">Кыргызская версия сайта</h2>
           <div class="hint" style="margin:-4px 0 12px">Эти тексты видят клиенты, которые нажали на сайте «Кыр». Пустое поле — покажется русский текст. Серым в поле подсказан ваш русский вариант.</div>
-          ${[['heroKicker', 'Надпись над заголовком'], ['tagline', 'Заголовок первого экрана'], ['role', 'Кем работаете'], ['heroPoints', 'Пункты под кнопками', 1],
-            ['about', 'Текст «Обо мне»', 1], ['stats', 'Цифры доверия', 1], ['steps', 'Как работает рассрочка — шаги', 1], ['documents', 'Какие документы нужны', 1],
-            ['faq', 'Вопросы и ответы', 1], ['ctaTitle', 'Заголовок финального блока'], ['ctaText', 'Текст финального блока', 1]]
+          ${[['heroKicker', 'Надпись над заголовком'], ['tagline', 'Заголовок первого экрана'], ['role', 'Подпись под названием'], ['heroPoints', 'Пункты под кнопками', 1],
+            ['about', 'Текст «О нас»', 1], ['stats', 'Цифры доверия', 1], ['steps', 'Как работает рассрочка — шаги', 1], ['documents', 'Какие документы нужны', 1],
+            ['faq', 'Вопросы и ответы', 1], ['ctaTitle', 'Заголовок финального блока'], ['ctaText', 'Текст финального блока', 1],
+            ['services', 'Услуги', 1], ['sellTitle', '«Продать квартиру» — заголовок'], ['sellText', '«Продать квартиру» — текст', 1], ['vacancies', 'Вакансии', 1]]
             .map(([k, label, area]) => `<label class="f"><span>${label} — по-кыргызски</span>${area
               ? `<textarea name="${k}Ky" rows="5" placeholder="${esc(s[k])}">${esc(s[k + 'Ky'])}</textarea>`
               : `<input type="text" name="${k}Ky" value="${esc(s[k + 'Ky'])}" placeholder="${esc(s[k])}">`}</label>`).join('')}
@@ -557,6 +614,19 @@
           <div class="hint" style="margin:-4px 0 10px">Показываются на главной сразу после первого экрана. Под каждой новостью кнопка «Узнать первым» — клиент пишет вам в WhatsApp. До ${NEWS_MAX} новостей.</div>
           <div id="newsList" class="rev-list"></div>
           <button type="button" class="btn btn-block" id="newsAdd">+ Добавить новость</button>
+        </div>
+        <div class="card"><h2 style="margin-top:0">Услуги</h2>
+          ${t('services', 'Услуги агентства', 'Первая строка — название услуги, дальше описание. Разделяйте услуги пустой строкой. Пусто — блока нет.')}
+          ${f('sellTitle', '«Продать квартиру» — заголовок', 'text', 'Призыв для владельцев под услугами (например, «Хотите продать квартиру?»), с кнопкой WhatsApp. Пусто — призыва нет.')}
+          ${t('sellText', '«Продать квартиру» — текст')}
+        </div>
+        <div class="card"><h2 style="margin-top:0">Команда</h2>
+          <div class="hint" style="margin:-4px 0 10px">Специалисты агентства на главной: фото, имя, должность и кнопка WhatsApp. До ${TEAM_MAX} человек.</div>
+          <div id="teamList" class="rev-list"></div>
+          <button type="button" class="btn btn-block" id="teamAdd">+ Добавить специалиста</button>
+        </div>
+        <div class="card"><h2 style="margin-top:0">Вакансии</h2>
+          ${t('vacancies', 'Вакансии', 'Первая строка — должность, дальше условия. Разделяйте вакансии пустой строкой. Пусто — блока нет.')}
         </div>
         <div class="card"><h2 style="margin-top:0">Блоки главной</h2>
           ${t('steps', 'Как работает рассрочка — шаги', 'Каждый шаг с новой строки')}
@@ -585,12 +655,14 @@
     const form = document.getElementById('sf');
     const getReviews = reviewsEditor(s.reviews);
     const getNews = newsEditor(s.news);
+    const getTeam = teamEditor(s.team);
     form.onsubmit = async e => {
       e.preventDefault();
       // Поля карточек отзывов и новостей без name — в форму не попадают; они собираются из карточек
       const data = Object.fromEntries(new FormData(form));
       data.reviews = getReviews();
       data.news = getNews();
+      data.team = getTeam();
       settings = await api('PUT', '/api/admin/settings', data);
       toast('Сохранено');
     };
